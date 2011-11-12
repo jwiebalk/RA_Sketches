@@ -23,6 +23,9 @@ byte WhiteValue=0;
 byte BlueValue=0;
 byte RoyalBlueValue=0;
 
+boolean ForceCloud=false;
+
+
 #define Port8   8
 #define Heater  7
 #define Port6   6
@@ -76,7 +79,11 @@ PROGMEM const char *webbanner_items[] = {
  }
   void MenuEntry3()
  {
-   //Add thunderstorm start code here
+   pingSerial();
+   ReefAngel.LCD.DrawDate(6, 90);
+  ReefAngel.LCD.DrawText(DefaultFGColor, DefaultBGColor, 20, 40, "ThunderStorm");
+  ForceCloud=true;
+  //ReefAngel.DisplayedMenu=RETURN_MAIN_MODE;
  }
 
 void WifiSendAlert(byte id, boolean IsAlert)
@@ -107,15 +114,15 @@ void DrawCustomMain()
 {
   // the graph is drawn/updated when we exit the main menu &
   // when the parameters are saved
-  ReefAngel.LCD.DrawDate(6, 115);
+  //ReefAngel.LCD.DrawDate(6, 115);
   pingSerial();
-  ReefAngel.LCD.DrawMonitor(15, 68, ReefAngel.Params);
-  ReefAngel.LCD.DrawText(DPColor, DefaultBGColor, 70, 78 ,"W:");
-  ReefAngel.LCD.DrawSingleMonitor(ReefAngel.AI.GetChannel(0), DPColor, 84, 78, 1);
-  ReefAngel.LCD.DrawText(APColor , DefaultBGColor, 70, 90 ,"B:");
-  ReefAngel.LCD.DrawSingleMonitor(ReefAngel.AI.GetChannel(1), APColor, 84, 90, 1);
+  ReefAngel.LCD.DrawMonitor(15, 66, ReefAngel.Params);
+  ReefAngel.LCD.DrawText(DPColor, DefaultBGColor, 67, 78 ,"W:");
+  ReefAngel.LCD.DrawSingleMonitor(ReefAngel.AI.GetChannel(0), DPColor, 79, 78, 1);
+  ReefAngel.LCD.DrawText(APColor , DefaultBGColor, 67, 90 ,"B:");
+  ReefAngel.LCD.DrawSingleMonitor(ReefAngel.AI.GetChannel(1), APColor, 79, 90, 1);
   ReefAngel.LCD.DrawText(APColor , DefaultBGColor, 94, 90 ,"RB:");
-  ReefAngel.LCD.DrawSingleMonitor(ReefAngel.AI.GetChannel(2), APColor, 115, 90, 1);
+  ReefAngel.LCD.DrawSingleMonitor(ReefAngel.AI.GetChannel(2), APColor, 113, 90, 1);
 
   pingSerial();
   byte TempRelay = ReefAngel.Relay.RelayData;
@@ -138,17 +145,17 @@ void CheckCloud()
 
   // Frequency in days based on the day of the month - number 2 means every 2 days, for example (day 2,4,6 etc)
   // For testing purposes, you can use 1 and cause the cloud to occur everyday
-#define Clouds_Every_X_Days 1 
+#define Clouds_Every_X_Days 2 
 
   // Percentage chance of a cloud happening today
   // For testing purposes, you can use 100 and cause the cloud to have 100% chance of happening
-#define Cloud_Chance_per_Day 100
+#define Cloud_Chance_per_Day 45
 
   // Minimum number of minutes for cloud duration.  Don't use max duration of less than 6
 #define Min_Cloud_Duration 7
 
   // Maximum number of minutes for the cloud duration. Don't use max duration of more than 255
-#define Max_Cloud_Duration 15
+#define Max_Cloud_Duration 13
 
   // Minimum number of clouds that can happen per day
 #define Min_Clouds_per_Day 3
@@ -166,7 +173,7 @@ void CheckCloud()
 
   // Percentage chance of a lightning happen for every cloud
   // For testing purposes, you can use 100 and cause the lightning to have 100% chance of happening
-#define Lightning_Change_per_Cloud 100
+#define Lightning_Change_per_Cloud 30
 
   // Note: Make sure to choose correct values that will work within your PWMSLope settings.
   // For example, in our case, we could have a max of 5 clouds per day and they could last for 50 minutes.
@@ -176,7 +183,7 @@ void CheckCloud()
     // It's a tight fit, but it did.
 
     //#define printdebug // Uncomment this for debug print on Serial Monitor window
-#define forcecloudcalculation // Uncomment this to force the cloud calculation to happen in the boot process. 
+//#define forcecloudcalculation // Uncomment this to force the cloud calculation to happen in the boot process. 
 
 
     // Change the values above to customize your cloud/storm effect
@@ -223,7 +230,14 @@ void CheckCloud()
       }
     }
   // Now that we have all the parameters for the cloud, let's create the effect
-
+  if (ForceCloud)
+{
+  ForceCloud=false;
+  cloudchance=1;
+  cloudduration=10;
+  lightningchance=1;
+  cloudstart=NumMins(hour(),minute())+1;
+}
   if (cloudchance)
   {
     //is it time for cloud yet?
