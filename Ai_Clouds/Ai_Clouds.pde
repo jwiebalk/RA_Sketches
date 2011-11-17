@@ -344,6 +344,8 @@ void setup()
   ReefAngel.Relay.On(SOL);
 
   ReefAngel.AI.SetPort(highATOPin);
+  
+  ReefAngel.OverheatTempProbe = &ReefAngel.Params.Temp3;
 }
 
 void loop()
